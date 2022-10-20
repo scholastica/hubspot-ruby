@@ -4,8 +4,9 @@ module Hubspot
 
     class << self
       def get_json(path, opts)
+        access_token = Hubspot::Config.access_token
         url = generate_url(path, opts)
-        response = get(url, format: :json)
+        response = get(url, format: :json, headers: {"Authorization" => "Bearer #{access_token}"})
         log_request_and_response url, response
         raise(Hubspot::RequestError.new(response)) unless response.success?
         response.parsed_response
@@ -15,7 +16,7 @@ module Hubspot
         no_parse = opts[:params].delete(:no_parse) { false }
 
         url = generate_url(path, opts[:params])
-        response = post(url, body: opts[:body].to_json, headers: { 'Content-Type' => 'application/json' }, format: :json)
+        response = post(url, body: opts[:body].to_json, headers: {"Content-Type" => "application/json", "Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
         raise(Hubspot::RequestError.new(response)) unless response.success?
 
@@ -24,7 +25,7 @@ module Hubspot
 
       def put_json(path, opts)
         url = generate_url(path, opts[:params])
-        response = put(url, body: opts[:body].to_json, headers: { 'Content-Type' => 'application/json' }, format: :json)
+        response = put(url, body: opts[:body].to_json, headers: {"Content-Type" => "application/json", "Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
         raise(Hubspot::RequestError.new(response)) unless response.success?
         response.parsed_response
@@ -32,7 +33,7 @@ module Hubspot
 
       def delete_json(path, opts)
         url = generate_url(path, opts)
-        response = delete(url, format: :json)
+        response = delete(url, headers: {"Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
         raise(Hubspot::RequestError.new(response)) unless response.success?
         response
@@ -44,12 +45,11 @@ module Hubspot
         Hubspot::Config.logger.info "Hubspot: #{uri}.\nBody: #{body}.\nResponse: #{response.code} #{response.body}"
       end
 
-      def generate_url(path, params={}, options={})
-        Hubspot::Config.ensure! :hapikey
+      def generate_url(path, params = {}, options = {})
+        Hubspot::Config.ensure! :access_token
         path = path.clone
         params = params.clone
         base_url = options[:base_url] || Hubspot::Config.base_url
-        params["hapikey"] = Hubspot::Config.hapikey unless options[:hapikey] == false
 
         if path =~ /:portal_id/
           Hubspot::Config.ensure! :portal_id
@@ -96,8 +96,12 @@ module Hubspot
     follow_redirects true
 
     def self.submit(path, opts)
-      url = generate_url(path, opts[:params], { base_url: 'https://forms.hubspot.com', hapikey: false })
-      post(url, body: opts[:body], headers: { 'Content-Type' => 'application/x-www-form-urlencoded' })
+      url = generate_url(path, opts[:params], {base_url: "https://forms.hubspot.com", hapikey: false})
+      post(url, body: opts[:body],
+      headers: {
+        "Content-Type" => "application/x-www-form-urlencoded",
+        "Authorization" => "Bearer #{access_token}"
+      })
     end
   end
 end
