@@ -99,8 +99,7 @@ module Hubspot
       url = generate_url(path, opts[:params], {base_url: "https://forms.hubspot.com", hapikey: false})
       post(url, body: opts[:body],
       headers: {
-        "Content-Type" => "application/x-www-form-urlencoded",
-        "Authorization" => "Bearer #{access_token}"
+        "Content-Type" => "application/x-www-form-urlencoded"
       })
     end
   end
