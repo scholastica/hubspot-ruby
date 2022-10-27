@@ -14,7 +14,7 @@ module Hubspot
 
       def post_json(path, opts)
         no_parse = opts[:params].delete(:no_parse) { false }
-
+        access_token = Hubspot::Config.access_token
         url = generate_url(path, opts[:params])
         response = post(url, body: opts[:body].to_json, headers: {"Content-Type" => "application/json", "Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
@@ -24,6 +24,7 @@ module Hubspot
       end
 
       def put_json(path, opts)
+        access_token = Hubspot::Config.access_token
         url = generate_url(path, opts[:params])
         response = put(url, body: opts[:body].to_json, headers: {"Content-Type" => "application/json", "Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
@@ -32,6 +33,7 @@ module Hubspot
       end
 
       def delete_json(path, opts)
+        access_token = Hubspot::Config.access_token
         url = generate_url(path, opts)
         response = delete(url, headers: {"Authorization" => "Bearer #{access_token}"}, format: :json)
         log_request_and_response url, response, opts[:body]
